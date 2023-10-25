@@ -8,20 +8,25 @@ import {
   Platform,
   KeyboardAvoidingView,
   Keyboard,
+  Image,
   TouchableWithoutFeedback,
   Alert,
 } from "react-native";
 import { useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 
 const initialState = {
+  login: "",
   email: "",
   password: "",
 };
 
-export const LoginScreen = () => {
+const RegistrationScreen = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [isShowKeyboard, setIsShowKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
+
+  const navigation = useNavigation();
 
   const onShowPassword = () => {
     setIsPasswordVisible((state) => !state);
@@ -37,11 +42,11 @@ export const LoginScreen = () => {
       Alert.alert("Password should be at least 6 characters");
       return;
     }
-
     setIsShowKeyboard(false);
     Keyboard.dismiss();
     console.log(state);
     setState(initialState);
+    navigation.navigate("HomeScreen");
   };
 
   function validateEmail(email) {
@@ -63,15 +68,36 @@ export const LoginScreen = () => {
       >
         <ImageBackground
           style={styles.backgroundImg}
-          source={require("../assets/img/Photo_BG.jpg")}
+          source={require("../../assets/img/Photo_BG.jpg")}
         >
           <View style={styles.mainDiv}>
+            <View style={styles.avatarBox}>
+              <Image
+                style={styles.avatar}
+                source={require("../../assets/img/NoImage.jpg")}
+              />
+              <TouchableOpacity>
+                <Image
+                  style={styles.add}
+                  source={require("../../assets/img/add.png")}
+                />
+              </TouchableOpacity>
+            </View>
             <View style={styles.header}>
-              <Text style={styles.text}>Увійти</Text>
+              <Text style={styles.text}>Реєстрація</Text>
             </View>
 
             <View style={styles.form}>
               <View style={styles.formInputs}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Логін"
+                  onFocus={() => setIsShowKeyboard(true)}
+                  value={state.login}
+                  onChangeText={(value) =>
+                    setState((prevState) => ({ ...prevState, login: value }))
+                  }
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="Адреса електронної пошти"
@@ -107,7 +133,7 @@ export const LoginScreen = () => {
               </View>
 
               <TouchableOpacity style={styles.mainBtn} onPress={onSignUp}>
-                <Text style={styles.mainBtnText}>Увійти</Text>
+                <Text style={styles.mainBtnText}>Зареєстуватися</Text>
               </TouchableOpacity>
             </View>
 
@@ -116,10 +142,9 @@ export const LoginScreen = () => {
                 ...styles.navigationBtn,
                 marginBottom: isShowKeyboard ? 20 : 60,
               }}
+              onPress={() => navigation.navigate("Login")}
             >
-              <Text style={styles.navigationText}>
-                Немає акаунту? Зареєструватися
-              </Text>
+              <Text style={styles.navigationText}>Вже є акаунт? Увійти</Text>
             </TouchableOpacity>
           </View>
         </ImageBackground>
@@ -160,7 +185,7 @@ const styles = StyleSheet.create({
   mainDiv: {
     position: "relative",
     backgroundColor: "#FFF",
-
+    paddingTop: 60,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
   },
@@ -196,4 +221,29 @@ const styles = StyleSheet.create({
     color: "#1B4371",
     textAlign: "center",
   },
+  avatarBox: {
+    width: 120,
+    height: 120,
+    position: "absolute",
+    top: 0,
+    left: "50%",
+    backgroundColor: "#F6F6F6",
+    borderRadius: 16,
+    transform: "translate(-60px, -60px)",
+  },
+  add: {
+    width: 25,
+    height: 25,
+    position: "absolute",
+    bottom: 14,
+    right: -13,
+  },
+  avatar: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 16,
+    resizeMode: "cover",
+  },
 });
+
+export default RegistrationScreen;
