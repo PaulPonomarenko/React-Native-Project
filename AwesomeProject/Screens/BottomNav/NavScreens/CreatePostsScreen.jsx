@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { AntDesign, MaterialIcons, Feather } from "@expo/vector-icons";
+import { Camera } from "expo-camera";
 
 const CreatePostsScreen = () => {
   return (
@@ -21,15 +22,33 @@ const CreatePostsScreen = () => {
         >
           <View style={styles.container}>
             <View style={styles.mainContent}>
-              <View style={styles.photoImg}>
-                <TouchableOpacity style={styles.photoIconWrapper}>
-                  <MaterialIcons
-                    name="photo-camera"
-                    size={24}
-                    color="#BDBDBD"
-                  />
-                </TouchableOpacity>
-              </View>
+              {false ? (
+                <View style={styles.openCamera}>
+                  <TouchableOpacity style={styles.photoIconWrapper}>
+                    <MaterialIcons
+                      name="photo-camera"
+                      size={24}
+                      color="#BDBDBD"
+                    />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <Camera style={styles.openCamera}>
+                  <TouchableOpacity
+                    style={[
+                      styles.photoIconWrapper,
+                      { backgroundColor: "transparent" },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="photo-camera"
+                      size={24}
+                      color="#BDBDBD"
+                    />
+                  </TouchableOpacity>
+                </Camera>
+              )}
+
               <Text style={styles.photoPlaceCaption}>
                 {true ? "Редагувати фото" : "Завантажте фото"}
               </Text>
@@ -83,7 +102,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 32,
   },
-  photoImg: {
+  openCamera: {
     width: "100%",
     height: 240,
     backgroundColor: "#E8E8E8",
