@@ -29,7 +29,7 @@ const TabNavigation = () => {
       }}
     >
       <MainTab.Screen
-        name="HomeScreen"
+        name="Home"
         component={HomeScreen}
         options={({ navigation }) => ({
           headerTitle: "Публікації",
