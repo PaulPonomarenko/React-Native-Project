@@ -3,7 +3,11 @@ import RegistrationScreen from "./Screens/Auth/RegistrationScreen";
 import LoginScreen from "./Screens/Auth/LoginScreen";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
+import { TouchableOpacity } from "react-native";
 import TabNavigation from "./Screens/BottomNav/Navigation";
+import { Ionicons } from "@expo/vector-icons";
+import CommentsScreen from "./Screens/CommentsScreen";
+import MapScreen from "./Screens/MapScreen";
 
 const Stack = createStackNavigator();
 
@@ -38,6 +42,8 @@ export default function App() {
           name="Login"
           component={LoginScreen}
         />
+        <Stack.Screen name="CommentsScreen" component={CommentsScreen} />
+        <Stack.Screen name="MapScreen" component={MapScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

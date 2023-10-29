@@ -8,12 +8,17 @@ import {
   SafeAreaView,
   FlatList,
 } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 import { AntDesign, Feather } from "@expo/vector-icons";
-
-import Post from "../../../Components/Post";
+import { defaultPost } from "../../../Data/defaultPosts";
+import NewPosts from "../../../Components/NewPosts";
+import { useEffect, useState } from "react";
 
 const ProfileScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  console.log(route);
   return (
     <ImageBackground
       source={require("../../../assets/img/Photo_BG.jpg")}
@@ -37,8 +42,7 @@ const ProfileScreen = () => {
           </TouchableOpacity>
         </View>
         <Text style={styles.title}>UserName</Text>
-
-        <Post />
+        <NewPosts posts={defaultPost} navigation={navigation} />
       </View>
     </ImageBackground>
   );
@@ -46,9 +50,10 @@ const ProfileScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 0.75,
     alignItems: "center",
     paddingTop: 64,
-    paddingBottom: 64,
+    paddingBottom: 48,
     backgroundColor: "#FFF",
     borderTopRightRadius: 25,
     borderTopLeftRadius: 25,
@@ -82,6 +87,7 @@ const styles = StyleSheet.create({
     lineHeight: 35,
     letterSpacing: 0.01,
     marginTop: 8,
+    marginBottom: 32,
   },
   logOutButton: {
     position: "absolute",

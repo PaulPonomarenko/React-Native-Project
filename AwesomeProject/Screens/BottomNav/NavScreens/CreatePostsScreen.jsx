@@ -7,11 +7,97 @@ import {
   TouchableOpacity,
   Keyboard,
   StyleSheet,
+  Image,
+  Alert,
 } from "react-native";
 import { AntDesign, MaterialIcons, Feather } from "@expo/vector-icons";
 import { Camera } from "expo-camera";
+import { useState, useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
+import * as MediaLibrary from "expo-media-library";
+import * as Location from "expo-location";
 
 const CreatePostsScreen = () => {
+  const [camera, setCamera] = useState(null);
+  const [photo, setPhoto] = useState(undefined);
+  const [activePhotoScreen, setActivePhotoScreen] = useState(false);
+  const [photoName, setPhotoName] = useState("");
+  const [hasCameraPermission, setHasCameraPermission] = useState();
+  const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
+  const [locationName, setLocationName] = useState("");
+
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+
+  const navigation = useNavigation();
+
+  async function takePhoto() {
+    const { uri } = await camera.takePictureAsync();
+    await MediaLibrary.createAssetAsync(uri);
+    setPhoto(uri);
+    setActivePhotoScreen(false);
+  }
+
+  async function onPublishPost() {
+    if (!photo) {
+      return Alert.alert("Please select photo");
+    }
+    if (!photoName === "") {
+      return Alert.alert("Please give title to your photo");
+    }
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setErrorMsg("Permission to access location was denied");
+      return;
+    }
+
+    let { coords } = await Location.getCurrentPositionAsync({});
+    if (!coords) {
+      return;
+    }
+    setLatitude(coords.latitude);
+    setLongitude(coords.longitude);
+    navigation.navigate("Home", {
+      photo,
+      locationName,
+      photoName,
+      latitude,
+      longitude,
+    });
+
+    reset();
+  }
+
+  if (hasCameraPermission === false) {
+    Alert.alert("Accsess to camera denied");
+  }
+
+  function reset() {
+    setPhoto(undefined);
+    setLocationName("");
+    setPhotoName("");
+  }
+
+  function onChangePostButtonStyle() {
+    const state = photoName && photo;
+    if (!state) {
+      return { backGroundColor: "#F6F6F6", textColor: "#BDBDBD" };
+    }
+
+    return { backGroundColor: "#FF6C00", textColor: "#FFF" };
+  }
+
+  useEffect(() => {
+    (async () => {
+      const cameraPermission = await Camera.requestCameraPermissionsAsync();
+      const mediaLibraryPermission =
+        await MediaLibrary.requestPermissionsAsync();
+
+      setHasCameraPermission(cameraPermission.status === "granted");
+      setHasMediaLibraryPermission(mediaLibraryPermission.status === "granted");
+    })();
+  }, []);
+
   return (
     <>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -22,23 +108,13 @@ const CreatePostsScreen = () => {
         >
           <View style={styles.container}>
             <View style={styles.mainContent}>
-              {false ? (
-                <View style={styles.openCamera}>
-                  <TouchableOpacity style={styles.photoIconWrapper}>
-                    <MaterialIcons
-                      name="photo-camera"
-                      size={24}
-                      color="#BDBDBD"
-                    />
-                  </TouchableOpacity>
-                </View>
+              {photo ? (
+                <Image source={{ uri: photo }} style={styles.openCamera} />
               ) : (
-                <Camera style={styles.openCamera}>
+                <View style={styles.openCamera}>
                   <TouchableOpacity
-                    style={[
-                      styles.photoIconWrapper,
-                      { backgroundColor: "transparent" },
-                    ]}
+                    style={styles.photoIconWrapper}
+                    onPress={() => setActivePhotoScreen(true)}
                   >
                     <MaterialIcons
                       name="photo-camera"
@@ -46,22 +122,33 @@ const CreatePostsScreen = () => {
                       color="#BDBDBD"
                     />
                   </TouchableOpacity>
-                </Camera>
+                </View>
+              )}
+              {photo ? (
+                <Text style={styles.photoPlaceCaption}>Редагувати фото</Text>
+              ) : (
+                <Text
+                  style={styles.photoPlaceCaption}
+                  onPress={() => setActivePhotoScreen(true)}
+                >
+                  Завантажте фото
+                </Text>
               )}
 
-              <Text style={styles.photoPlaceCaption}>
-                {true ? "Редагувати фото" : "Завантажте фото"}
-              </Text>
               <View style={styles.photoInputGroup}>
                 <TextInput
                   style={styles.input}
                   placeholder="Назва..."
-                ></TextInput>
+                  value={photoName}
+                  onChangeText={setPhotoName}
+                />
                 <View style={styles.inputWrapper}>
                   <TextInput
                     style={[styles.input, { paddingLeft: 28 }]}
                     placeholder="Місцевість..."
-                  ></TextInput>
+                    value={locationName}
+                    onChangeText={setLocationName}
+                  />
                   <Feather
                     style={styles.mapPinIcon}
                     name="map-pin"
@@ -70,15 +157,71 @@ const CreatePostsScreen = () => {
                   />
                 </View>
               </View>
-              <TouchableOpacity style={styles.mainPostBtn}>
-                <Text style={styles.buttonText}>Опубліковати</Text>
+              <TouchableOpacity
+                style={[
+                  styles.mainPostBtn,
+                  {
+                    backgroundColor: `${
+                      onChangePostButtonStyle().backGroundColor
+                    }`,
+                  },
+                ]}
+                onPress={onPublishPost}
+              >
+                <Text
+                  style={[
+                    styles.buttonText,
+                    { color: `${onChangePostButtonStyle().textColor}` },
+                  ]}
+                >
+                  Опубліковати
+                </Text>
               </TouchableOpacity>
             </View>
             <View style={styles.deleteBtnContainer}>
-              <TouchableOpacity style={styles.deleteIconWrapper}>
+              <TouchableOpacity
+                style={styles.deleteIconWrapper}
+                onPress={() => reset()}
+              >
                 <AntDesign name="delete" size={16} color="black" />
               </TouchableOpacity>
             </View>
+            {activePhotoScreen && (
+              <Camera
+                style={styles.photoScreenContainer}
+                ref={setCamera}
+                ratio="3:4"
+              >
+                <View
+                  style={{
+                    borderColor: "#FFF",
+                    borderWidth: 1,
+                    position: "absolute",
+                    top: 3,
+                    left: 2,
+                  }}
+                >
+                  <Image
+                    source={{ uri: photo }}
+                    style={{ height: 200, width: 200 }}
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.photoIconWrapper,
+                    { backgroundColor: "#FFFFFF4D", top: "85%", left: "42%" },
+                  ]}
+                  onPress={takePhoto}
+                >
+                  <MaterialIcons
+                    name="photo-camera"
+                    size={24}
+                    color="#BDBDBD"
+                  />
+                </TouchableOpacity>
+              </Camera>
+            )}
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
@@ -173,6 +316,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#F6F6F6",
     paddingHorizontal: 23,
     paddingVertical: 8,
+  },
+  photoScreenContainer: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
 });
 

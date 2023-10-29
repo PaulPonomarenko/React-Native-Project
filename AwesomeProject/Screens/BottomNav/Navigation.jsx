@@ -68,6 +68,7 @@ const TabNavigation = () => {
           headerTitle: "Створити публікацію",
           headerTitleAlign: "center",
           headerStyle: styles.header,
+          tabBarStyle: { display: "none" },
           headerLeftContainerStyle: {
             paddingLeft: 20,
           },
